@@ -4,12 +4,13 @@ from rest_framework import status
 from rest_framework import permissions 
 import datetime
 from .models import (
-    CustomUser, Staffs, Courses,
-    Subjects, Students, Attendance,
+    CustomUser, Staffs, Courses, Subjects, Students, Attendance,
     AttendanceReport, LeaveReportStudent, FeedBackStudent,
     StudentResult
 )
-from .serialiser import StudentSerialiser, CustomUserSerializer
+from .serialiser import (
+    StudentSerialiser, CustomUserSerializer,
+    SubjectSerializer, StudentResultSerializer)
 from django.db.models import Q
 from typing import Dict
 from django.http import HttpRequest, HttpResponse
@@ -74,52 +75,15 @@ class StudentProfile(APIView):
             return Response(serializer.data, 201)
         return Response(serializer.error, status=status.HTTP_400_BAD_REQUEST)
 
-def save_student_data(request, student_data: Dict[str, str]) ->None:
-    """
-    Updates the student data in the database based on the
-        provided student_data dictionary.
-
-    Args:
-        request: The HTTP request object.
-        student_data: A dictionary containing student data attributes
-                        to be updated.
-
-    Returns:
-        None
-    """
-
-    customuser = CustomUser.objects.get(id=request.user.id)
-    customuser.first_name = student_data.get('first_name')
-    customuser.last_name = student_data.get('last_name')
-    
-    password = student_data.get('password')
-    if password not in [None, ""]: 
-            customuser.set_password(password)
-    customuser.save() 
-
-    student = Students.objects.get(admin=customuser.id)
-    student.address = student_data.get('address')
-    student.save() 
   
-  
-def student_view_result(request):
-    """
-    Renders the page for a student to view their academic results.
-
-    Args:
-        request: The HTTP request object.
-
-    Returns:
-        HttpResponse object containing the rendered academic
-                    results view template.
-    """
-
-
-    student = Student.objects.prefetch_related(
-        'studentresult'
-        ).get(admin=request.user.id)
-    
-    context = { 
-        "student_result": student.studentresult_set.all(), 
-    } 
-    return render(request, "student_template/student_view_result.html", context)
+class StudentViewResult(APIView):
+    def get(self, request, *args, **kwargs):
+        student = Student.objects.prefetch_related(
+            'studentresult'
+            ).get(admin=request.user.id)
+        
+        student_result = student.studentresult_set.all()
+        serializer = StudentResultSerializer(student_result, many=True)
+        if serializer.is_valid():
+            return Response(serializer.data)
+        return render(serializer.error, 404)

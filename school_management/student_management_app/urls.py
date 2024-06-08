@@ -14,7 +14,7 @@ urlpatterns = [
 	path('student_home/', StudentViews.student_home, name="student_home"), 
 	path('student_profile/', StudentViews.StudentProfile.as_view(), name="student_profile"), 
 	path('student_profile_update/', StudentViews.StudentProfile.as_view(), name="student_profile_update"), 
-	path('student_view_result/', StudentViews.student_view_result, name="student_view_result"), 
+	path('student_view_result/', StudentViews.StudentViewResult.as_view() name="student_view_result"), 
 
 
 	# URLS for Staff 

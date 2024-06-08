@@ -1,4 +1,5 @@
-from .models import Students, CustomUser
+from .models import (
+    Students, CustomUser, Subjects, StudentResult)
 from rest_framework import serializers
 
 
@@ -24,3 +25,15 @@ class CustomUserSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
         return user
+
+
+class SubjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subjects
+        fields = ['id', 'name']
+
+class StudentResultSerializer(serializers.ModelSerializer):
+    subject = SubjectSerializer(read_only=True)  
+    class Meta:
+        model = StudentResult
+        fields = ['student_id', 'subject_id', 'subject', 'subject_exam_marks', 'subject_assignment_marks']
