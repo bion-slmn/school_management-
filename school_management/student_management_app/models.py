@@ -17,6 +17,9 @@ class SemisterModel(models.Model):
     semister_starts = models.DateField()
     semister_ends = models.DateField()
 
+    def __str__(self) -> str:
+        return f'{self.semister_starts} to {self.semister_ends}'
+
 
 class CustomUser(AbstractUser):
     '''
@@ -33,7 +36,12 @@ class CustomUser(AbstractUser):
     } 
   
     user_type_data = ((HOD, "HOD"), (STAFF, "Staff"), (STUDENT, "Student")) 
-    user_type = models.CharField(default=1, choices=user_type_data, max_length=10) 
+    user_type = models.CharField(default=1, choices=user_type_data, max_length=10)
+    id = models.UUIDField(
+        primary_key=True,
+        default = uuid.uuid4,
+        editable = False
+    )
 
 
 
@@ -58,6 +66,9 @@ class AdminHOD(BaseModel):
     '''
     admin = models.OneToOneField(CustomUser, on_delete = models.CASCADE)
 
+    def __str__(self)-> str:
+        return f'{self.admin.username} is Admin'
+
 
 class Staffs(BaseModel):
     '''
@@ -66,12 +77,18 @@ class Staffs(BaseModel):
     admin = models.OneToOneField(CustomUser, on_delete = models.CASCADE)
     address = models.TextField()
 
+    def __str__(self)-> str:
+        return f'{self.admin.username} is Staff'
+
 
 class Courses(BaseModel):
     '''
     defines the attributes of a course or subject
     '''
     course_name = models.CharField(max_length=255)
+
+    def __str__(self)-> str:
+        return f'{course_name}'
 
 class Subjects(BaseModel):
     '''
@@ -84,6 +101,9 @@ class Subjects(BaseModel):
         )  
     staff_id = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
 
+    def __str__(self)-> str:
+        return f'{subject_name}'
+
 
 class Students(BaseModel):
     '''
@@ -91,22 +111,28 @@ class Students(BaseModel):
     '''
     admin = models.OneToOneField(
         CustomUser,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name='student_profile'
     )
     gender = models.CharField(max_length=50)
     profile_pic = models.FileField()
     address = models.TextField()
-    course_id = models.ForeignKey(Courses, on_delete=models.DO_NOTHING)
+    course_id = models.ForeignKey(Courses, on_delete=models.DO_NOTHING, null=True)
     semister_year_id = models.ForeignKey(
         SemisterModel,
         null=True,
         on_delete=models.CASCADE
     )
 
+    def __str__(self)-> str:
+        return f'{self.admin.username} is Student'
+
+
 class Attendance(BaseModel):
-    '''
-    defines a model for student attendance
-    '''
+    """
+    A model to store attendance records for students.
+    """
+
     subject_id = models.ForeignKey(
         Subjects,
         on_delete=models.DO_NOTHING
